@@ -127,8 +127,7 @@ app.post('/talker',
   validateRate,
   async (req, res) => {
   const { name, age, talk } = req.body;
-  const register = await getFile();
-  const talkers = [...register];
+  const talkers = await getFile();
   const newTalker = {
     id: talkers[talkers.length - 1].id + 1,
     name,
@@ -138,6 +137,34 @@ app.post('/talker',
   talkers.push(newTalker);
   await fs.writeFile(path.resolve(__dirname, './talker.json'), JSON.stringify(talkers));
   return res.status(201).json({ ...newTalker });
+});
+
+app.put('/talker/:id',
+  validateAuth,
+  validateName,
+  validateAge,
+  validateTalk,
+  validateWatchedAt,
+  validateRate,
+  async (req, res) => {
+  const { id } = req.params;
+  const { name, age, talk } = req.body;
+  const talkers = await getFile();
+  const foundTalker = talkers.find((obj) => obj.id === Number(id));
+  if (!foundTalker) {
+    return res.status(404).json({ message: 'Pessoa palestrante não encontrada' });
+  }
+
+  const index = talkers.indexOf(foundTalker);
+  
+  foundTalker.name = name;
+  foundTalker.age = age;
+  foundTalker.talk = talk;
+
+  talkers[index] = foundTalker;
+  
+  await fs.writeFile(path.resolve(__dirname, './talker.json'), JSON.stringify(talkers));  
+  return res.status(200).json({ ...foundTalker });
 });
 
 app.listen(PORT, () => {
