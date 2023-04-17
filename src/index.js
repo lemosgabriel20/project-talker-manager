@@ -19,42 +19,6 @@ const getFile = async () => {
   return JSON.parse(file);
 };
 
-app.get('/talker', async (req, res) => {
-  const register = await getFile();
-  return res.status(200).json(register);
-});
-
-app.get('/talker/:id', async (req, res) => {
-  const register = await getFile();
-  const foundReg = register.find((obj) => obj.id === Number(req.params.id));
-  if (!foundReg) {
-    return res.status(404).json({ message: 'Pessoa palestrante não encontrada' });
-  }
-  return res.status(200).json(foundReg);
-});
-
-const validateLogin = (req, res, next) => {
-  const { email, password } = req.body;
-  if (!email) {
-    return res.status(400).json({ message: 'O campo "email" é obrigatório' });
-  }
-  if (!email.match(/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/g)) {
-    return res.status(400).json({ message: 'O "email" deve ter o formato "email@email.com"' });
-  }
-  if (!password) {
-    return res.status(400).json({ message: 'O campo "password" é obrigatório' });
-  }
-  if (password.length < 6) {
-    return res.status(400).json({ message: 'O "password" deve ter pelo menos 6 caracteres' });
-  }
-  next();
-};
-
-app.post('/login', validateLogin, (req, res) => {
-  const token = cryptoRS.randomBytes(8).toString('hex');
-  return res.status(200).json({ token });
-});
-
 const validateAuth = (req, res, next) => {
   const { authorization } = req.headers;
   if (!authorization) {
@@ -116,6 +80,53 @@ const validateRate = (req, res, next) => {
   }
   next();
 };
+
+app.get('/talker', async (req, res) => {
+  const register = await getFile();
+  return res.status(200).json(register);
+});
+
+app.get('/talker/search', validateAuth, async (req, res) => {
+  const { q } = req.query;
+  const talkers = await getFile();
+  if (!q) {
+    return res.status(200).json(talkers);
+  }
+  const foundTalkers = talkers.filter((obj) => obj.name.includes(q));
+  console.log(foundTalkers);
+  return res.status(200).json(foundTalkers);
+});
+
+app.get('/talker/:id', async (req, res) => {
+  const register = await getFile();
+  const foundReg = register.find((obj) => obj.id === Number(req.params.id));
+  if (!foundReg) {
+    return res.status(404).json({ message: 'Pessoa palestrante não encontrada' });
+  }
+  return res.status(200).json(foundReg);
+});
+
+const validateLogin = (req, res, next) => {
+  const { email, password } = req.body;
+  if (!email) {
+    return res.status(400).json({ message: 'O campo "email" é obrigatório' });
+  }
+  if (!email.match(/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/g)) {
+    return res.status(400).json({ message: 'O "email" deve ter o formato "email@email.com"' });
+  }
+  if (!password) {
+    return res.status(400).json({ message: 'O campo "password" é obrigatório' });
+  }
+  if (password.length < 6) {
+    return res.status(400).json({ message: 'O "password" deve ter pelo menos 6 caracteres' });
+  }
+  next();
+};
+
+app.post('/login', validateLogin, (req, res) => {
+  const token = cryptoRS.randomBytes(8).toString('hex');
+  return res.status(200).json({ token });
+});
 
 app.post('/talker',
   validateAuth,
