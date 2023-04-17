@@ -1,4 +1,5 @@
 const fs = require('fs').promises;
+const cryptoRS = require('crypto');
 const path = require('path');
 const express = require('express');
 
@@ -31,7 +32,12 @@ app.get('/talker/:id', async (req, res) => {
     return res.status(404).json({ message: "Pessoa palestrante não encontrada" });
   }
   return res.status(200).json(foundReg);
-})
+});
+
+app.post('/login', (req, res) => {
+  const token = cryptoRS.randomBytes(8).toString('hex');
+  return res.status(200).json({ token: token });
+});
 
 app.listen(PORT, () => {
   console.log('Online');
