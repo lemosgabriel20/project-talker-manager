@@ -27,7 +27,6 @@ app.get('/talker', async (req, res) => {
 app.get('/talker/:id', async (req, res) => {
   const register = await getFile();
   const foundReg = register.find((obj) => obj.id === Number(req.params.id));
-  console.log(foundReg);
   if (!foundReg) {
     return res.status(404).json({ message: 'Pessoa palestrante não encontrada' });
   }
@@ -163,8 +162,22 @@ app.put('/talker/:id',
 
   talkers[index] = foundTalker;
   
-  await fs.writeFile(path.resolve(__dirname, './talker.json'), JSON.stringify(talkers));  
+  await fs.writeFile(path.resolve(__dirname, './talker.json'), JSON.stringify(talkers));
   return res.status(200).json({ ...foundTalker });
+});
+
+app.delete('/talker/:id',
+  validateAuth,
+  async (req, res) => {
+  const { id } = req.params;
+  const talkers = await getFile();
+  const foundTalker = talkers.find((obj) => obj.id === Number(id));
+
+  const index = talkers.indexOf(foundTalker);
+  talkers.splice(index, 1);
+
+  await fs.writeFile(path.resolve(__dirname, './talker.json'), JSON.stringify(talkers));
+  return res.status(204).end();
 });
 
 app.listen(PORT, () => {
