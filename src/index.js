@@ -13,10 +13,24 @@ app.get('/', (_request, response) => {
   response.status(HTTP_OK_STATUS).send();
 });
 
-app.get('/talker', async (req, res) => {
+const getFile = async () => {
   const file = await fs.readFile(path.resolve(__dirname, './talker.json'));
-  const register = JSON.parse(file);
+  return JSON.parse(file);
+}
+
+app.get('/talker', async (req, res) => {
+  const register = await getFile();
   return res.status(200).json(register);
+})
+
+app.get('/talker/:id', async (req, res) => {
+  const register = await getFile();
+  const foundReg = register.find((obj) => obj.id === Number(req.params.id));
+  console.log(foundReg)
+  if (!foundReg) {
+    return res.status(404).json({ message: "Pessoa palestrante não encontrada" });
+  }
+  return res.status(200).json(foundReg);
 })
 
 app.listen(PORT, () => {
